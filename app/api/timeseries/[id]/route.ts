@@ -26,9 +26,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
-  try {
-    const client = new Client({
-      connectionString: process.env.DATABASE_URL,
+  try {    const client = new Client({
+      connectionString: process.env.DATABASE_URL_UNPOOLED,
       ssl: {
         rejectUnauthorized: true
       }
