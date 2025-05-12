@@ -19,6 +19,7 @@ function generateSampleData(numPoints = 100) {
   for (let i = 0; i < numPoints; i++) {
     const timestamp = new Date(startTime.getTime() + i * 60000); // Eine Minute Intervall
     data.push({
+      id: uuidv4(), // Individuelle ID für jeden Messpunkt
       timestamp: timestamp.toISOString(),
       channel1: Math.sin(i * 0.1) * 10,  // Sinuswelle
       channel2: Math.random() * 5,        // Zufälliges Rauschen
@@ -30,27 +31,30 @@ function generateSampleData(numPoints = 100) {
 }
 
 async function insertSampleData() {
-  try {
+  try {    console.log('Connecting to database...');
     await client.connect();
     console.log('Connected to database');
 
-    // Generiere eine UUID für den Messdatensatz
-    const measurementId = uuidv4();
-    const sampleData = generateSampleData();    // Füge die Messdaten ein
+    console.log('Generating sample data...');
+
+    const sampleData = generateSampleData();
+    const firstPointId = sampleData[0].id;    // Füge alle Messpunkte ein
+    console.log('Inserting measurement points...');
     for (const point of sampleData) {
       await client.query(
         `INSERT INTO measurements (id, timestamp, channel1, channel2, channel3)
          VALUES ($1, $2, $3, $4, $5)`,
-        [uuidv4(), point.timestamp, point.channel1, point.channel2, point.channel3]
+        [point.id, point.timestamp, point.channel1, point.channel2, point.channel3]
       );
     }
+    console.log('Inserted', sampleData.length, 'measurement points');
 
-    // Füge die Metadaten ein
+    // Füge die Metadaten für den Datensatz ein
     await client.query(
       `INSERT INTO metadata (measurement_id, filename, created_at, description)
        VALUES ($1, $2, $3, $4)`,
       [
-        measurementId,
+        firstPointId,
         'example_data.csv',
         new Date().toISOString(),
         'Beispieldatensatz mit Sinuswelle, Rauschen und linearem Anstieg'
@@ -58,7 +62,7 @@ async function insertSampleData() {
     );
 
     console.log('Sample data inserted successfully');
-    console.log('Measurement ID:', measurementId);
+    console.log('Dataset ID:', firstPointId);
 
   } catch (err) {
     console.error('Error:', err);

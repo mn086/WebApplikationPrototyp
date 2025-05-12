@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS measurements (
 -- Metadata table
 CREATE TABLE IF NOT EXISTS metadata (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    measurement_id UUID NOT NULL,
+    measurement_id UUID REFERENCES measurements(id) ON DELETE CASCADE,
     filename VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     description TEXT
